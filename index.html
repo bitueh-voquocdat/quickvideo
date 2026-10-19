@@ -1,1 +1,61 @@
-<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QuickCut — Video Editor</title><link rel="stylesheet" href="./style.css"></head><body><div id="app"><header><div class="brand"><span class="logo">✂</span><strong>QuickCut</strong><small>Fast Video Editor</small></div><div class="actions"><button id="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button id="redo" title="Làm lại (Ctrl+Y)">↷</button><button id="addMedia">＋ Nhập video / ảnh</button><button id="addMusic">♫ Thêm nhạc</button><button id="exportBtn" class="primary">↥ Xuất video</button></div></header><main><section class="viewer"><div class="preview" id="preview"><canvas id="canvas" width="1280" height="720"></canvas><div id="empty">Kéo thả video hoặc ảnh vào đây<br><small>Hoặc nhấn “Nhập video / ảnh”</small></div></div><div class="transport"><button id="back" title="Lùi 5 giây">↶ 5s</button><button id="play" class="play">▶</button><button id="forward" title="Tiến 5 giây">5s ↷</button><span id="time">00:00.0 / 00:00.0</span><button id="fullscreen" title="Toàn màn hình">⛶</button></div></section><aside class="inspector"><div class="paneltitle">Thuộc tính <span id="selectedName">Chưa chọn clip</span></div><div id="controls"><p class="muted">Chọn clip trên timeline để chỉnh sửa.</p></div></aside></main><section class="bottom"><div class="toolbar"><div class="lefttools"><button id="split" title="Tách clip tại playhead (S)">✂ Tách</button><button id="delete" title="Xóa clip đã chọn (Delete)">▤ Xóa</button><button id="duplicate" title="Nhân bản clip">▣ Nhân bản</button><button id="moveLeft" title="Đưa clip sang trái">←</button><button id="moveRight" title="Đưa clip sang phải">→</button></div><div class="righttools"><span id="durationLabel">0 clip</span><label>Zoom <input type="range" id="zoom" min="25" max="200" value="75"></label></div></div><div class="timelinewrap" id="timelinewrap"><div id="ruler"></div><div class="trackrow"><div class="trackname">▣ VIDEO / ẢNH</div><div class="track" id="videoTrack"></div></div><div class="trackrow"><div class="trackname">♫ NHẠC</div><div class="track" id="audioTrack"></div></div><div id="playhead"></div></div><div class="tip">Kéo thả file để nhập · Kéo mép clip để cắt · Kéo clip để đổi thứ tự · S để tách · Space để phát/tạm dừng · Ctrl+Z để hoàn tác</div></section></div><input type="file" id="mediaInput" accept="video/*,image/*" multiple hidden><input type="file" id="musicInput" accept="audio/*" hidden><div class="modalBackdrop hidden" id="modal"><div class="modal"><h2>Xuất video</h2><p>Video được dựng ngay trên thiết bị. Giữ tab hoạt động trong lúc xuất.</p><label>Độ phân giải <select id="exportSize"><option value="720">720p (1280 × 720)</option><option value="1080">1080p (1920 × 1080)</option><option value="480">480p (854 × 480)</option></select></label><label>FPS <select id="exportFps"><option value="30">30 FPS</option><option value="24">24 FPS</option><option value="60">60 FPS</option></select></label><p id="exportSupport"></p><progress id="progress" value="0" max="100" hidden></progress><div class="modalActions"><button id="cancelExport">Đóng</button><button class="primary" id="startExport">Bắt đầu xuất</button></div></div></div><div id="toast"></div><script src="./app.js"></script></body></html>
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#10141c"/><meta name="description" content="QuickCut: cắt, ghép video và ảnh, thêm nhạc, điều chỉnh hình ảnh và xuất MP4 trực tiếp trong trình duyệt. Không tài khoản."/><title>QuickCut — Chỉnh sửa video nhanh</title><link rel="stylesheet" href="./styles.css"/></head>
+<body>
+<div class="shell" id="shell">
+  <header class="header">
+    <div class="brand"><span class="brand-icon">✂</span><span>Quick<span class="accent">Cut</span></span><span class="subbrand">Video Editor</span></div>
+    <div class="header-actions">
+      <button class="btn ghost" id="undo" title="Hoàn tác · Ctrl+Z" aria-label="Hoàn tác">↶</button>
+      <button class="btn ghost" id="redo" title="Làm lại · Ctrl+Y" aria-label="Làm lại">↷</button>
+      <span class="divider"></span>
+      <button class="btn ghost" id="newProject" title="Xóa timeline để bắt đầu video mới">Mới</button>
+      <button class="btn secondary" id="addMedia">＋ <span>Video / Ảnh</span></button>
+      <button class="btn secondary" id="addMusic">♫ <span>Thêm nhạc</span></button>
+      <button class="btn primary" id="exportBtn">↥ Xuất video</button>
+    </div>
+  </header>
+  <section class="workbench">
+    <div class="stage">
+      <div class="section-heading"><span>KHUNG XEM TRƯỚC</span><span id="stageLabel" class="hint">16:9 · 1280 × 720</span></div>
+      <div class="preview" id="preview"><canvas id="canvas" width="1280" height="720" aria-label="Khung xem trước video"></canvas>
+        <div id="empty" class="empty"><div class="empty-icon">▣</div><strong>Bắt đầu với video hoặc hình ảnh</strong><p>Kéo thả tệp vào đây hoặc chọn <b>Video / Ảnh</b></p><button class="btn primary" id="emptyImport">＋ Chọn tệp</button><small>File xử lý trên máy bạn, không tải lên máy chủ</small></div>
+      </div>
+      <div class="playback">
+        <button class="btn icon" id="back" title="Lùi 5 giây">↶5</button>
+        <button class="btn play" id="play" title="Phát / Tạm dừng · Space">▶</button>
+        <button class="btn icon" id="forward" title="Tiến 5 giây">5↷</button>
+        <span class="time" id="time">00:00.0 / 00:00.0</span>
+        <button class="btn icon" id="fullscreen" title="Toàn màn hình">⛶</button>
+      </div>
+    </div>
+    <aside class="inspector"><div class="section-heading"><span>CHỈNH SỬA</span><span class="hint">Theo đoạn đã chọn</span></div><div class="inspector-title" id="selectedName">Chưa chọn clip</div><div id="controls" class="controls"><div class="placeholder">Chọn đoạn video, ảnh hoặc nhạc trên timeline để điều chỉnh.</div></div></aside>
+  </section>
+  <section class="editing">
+    <div class="toolbar">
+      <div class="tools"><button class="btn secondary" id="split" title="Chia tại playhead · S">✂ Chia đoạn</button><button class="btn secondary" id="delete" title="Xóa đoạn đang chọn · Delete">⌫ Xóa</button><button class="btn ghost" id="duplicate" title="Nhân bản clip">▣ Nhân bản</button><button class="btn ghost" id="moveLeft" title="Chuyển đoạn sang trái">←</button><button class="btn ghost" id="moveRight" title="Chuyển đoạn sang phải">→</button></div>
+      <div class="tools rhs"><span id="durationLabel">0 đoạn</span><span class="zoom-label">◃</span><input id="zoom" type="range" min="24" max="180" value="65" aria-label="Phóng to timeline"/><span class="zoom-label">▹</span></div>
+    </div>
+    <div class="timeline-wrap" id="timelinewrap">
+      <div class="ruler-row"><div class="sticky-name ruler-name">THỜI GIAN</div><div id="ruler" class="ruler"></div></div>
+      <div class="track-row"><div class="sticky-name track-name"><span>▣</span> VIDEO · ẢNH</div><div id="videoTrack" class="track video-track"></div></div>
+      <div class="track-row"><div class="sticky-name track-name"><span>♫</span> ÂM THANH</div><div id="audioTrack" class="track audio-track"></div></div>
+      <div id="playhead" class="playhead"></div>
+    </div>
+    <footer><span>Nhập tệp → Kéo mép để cắt → Chia giữa bằng S → Ghép → Xuất</span><span class="footer-end">Space: phát · Ctrl+Z: hoàn tác · Delete: xóa</span></footer>
+  </section>
+</div>
+<input type="file" id="mediaInput" accept="video/*,image/png,image/jpeg,image/webp,image/gif" multiple hidden/>
+<input type="file" id="musicInput" accept="audio/*" multiple hidden/>
+<div class="modal-backdrop hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <div class="modal"><div class="modal-head"><h2 id="exportTitle">Xuất video</h2><button id="exportClose" class="btn ghost" title="Đóng">✕</button></div>
+    <p class="modal-note">Video được xử lý trên thiết bị. Giữ tab ở phía trước khi xuất để duy trì tốc độ khung hình và đồng bộ.</p>
+    <div class="form-grid"><label>Độ phân giải<select id="exportSize"><option value="480">480p · Nhẹ</option><option value="720" selected>720p · HD</option><option value="1080">1080p · Full HD</option></select></label><label>Tốc độ khung hình<select id="exportFps"><option value="24">24 FPS</option><option value="30" selected>30 FPS</option></select></label></div>
+    <label class="format-select">Định dạng xuất<select id="exportFormat"><option value="auto">Tự động (ưu tiên MP4)</option><option value="mp4">MP4 · H.264 (nếu trình duyệt hỗ trợ)</option><option value="webm">WebM · VP9/VP8</option></select></label>
+    <p id="exportSupport" class="format-note"></p>
+    <div id="progressArea" class="progress-area hidden"><div class="progress-caption"><span id="progressText">Đang chuẩn bị...</span><b id="progressPercent">0%</b></div><progress id="progress" max="100" value="0"></progress><div class="hint">Không đóng tab hoặc để máy ngủ khi xuất.</div></div>
+    <div class="modal-actions"><button class="btn secondary" id="cancelExport">Đóng</button><button class="btn primary" id="startExport">↥ Xuất video</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="./app.js" defer></script>
+</body></html>
